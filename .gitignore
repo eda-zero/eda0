@@ -1,0 +1,6 @@
+*.bak
+*.gz
+*.zip
+bak
+__pycache__
+*.exe
