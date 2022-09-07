@@ -43,7 +43,8 @@ if __name__ == '__main__':
     glib = GateLib(gateLib)
     # glib.dump()
     # print(glib.find('not(_)'))
-    # print('Nand(a,b)=', Nand(a,b).normalForm())
+    # 以下這種寫法很冗長，若用 operator override 寫，應該可以短很多
+    # 另外，用迪摩根定律把 and, or, not 的算式改寫成 nand+not 的優化版，應該會有需要
     goal = \
     Nand(
         Not(
@@ -65,32 +66,3 @@ if __name__ == '__main__':
     # print(goal.normalForm())
     partMap = randomParts(goal, glib, 10000)
     print('\n'.join(partMap.keys()))
-    # print(parts)
-    '''
-    subTreeMap = {}
-    for t in subTrees:
-        subTreeMap[f"{t['node'].id}:{t['subTree'].normalForm()}"] = t
-    print("=========== Part: in Gate Lib =============")
-    subTreeList = list(subTreeMap.keys())
-    subTreeSet = set(subTreeList)
-    print(subTreeSet)
-    partSet = set()
-    for p in subTreeSet:
-        if glib.find(p.subTree):
-            partSet.add(subTree)
-    print(partSet)
-    '''
-    '''
-    partList = list(partMap.keys()).sort()
-    print('partList=', partList)
-    '''
-    # print('\n'.join(partList))
-    '''
-    # exps = [n.subTree.normalForm() for n in trees]
-    expMap = Counter(exps)
-    print(expMap)
-    print("=========== in Gate Lib =============")
-    for exp in expMap:
-        if glib.find(exp):
-            print(exp)
-    '''
