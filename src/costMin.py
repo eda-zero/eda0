@@ -6,11 +6,17 @@ import sys
 
 def costMin(goal, gateLib):
     nodes = goal.allNodes() # 取得 gate 的所有子節點
-    partMap = singlePartMap(nodes, gateLib)
-    # print(partMap)
-    sol = {'goal':goal, 'nodes':nodes, 'partMap':partMap, 'cost':cost(partMap)}
+    singleMap = singlePartMap(nodes, gateLib)
+    sol = {'goal':goal, 'nodes':nodes, 'singleMap':singleMap, 
+           'partMap':singleMap, 'cost':cost(singleMap)}
     print('cost=', sol['cost'])
+    printPartMap(singleMap)
     improveLoop(sol, partImprove, 10000, 1000)
+
+def printPartMap(partMap):
+    for part in partMap.values():
+        g = part['libGate']
+        print(part['rootId'], part['nidSet'], g['name'], g['area'])
 
 def cost(partMap):
     totalCost = 0
@@ -19,8 +25,12 @@ def cost(partMap):
         totalCost += libGate['area']
     return totalCost
 
+successCount = 0
+
 def partImprove(sol):
-    goal = sol['goal']; nodes = sol['nodes']; partMap = sol['partMap']; costNow = sol['cost']
+    global successCount
+    goal = sol['goal']; nodes = sol['nodes']; singleMap = sol['singleMap']; 
+    partMap = sol['partMap']; costNow = sol['cost']
     # print('sol=', sol)
     # sys.exit(1)
     addPartExp = ''
@@ -33,19 +43,19 @@ def partImprove(sol):
     # sys.exit(1)
     libGate = glib.findByExp(addPartExp)
     if libGate is None: return False
-    print('libGate=', libGate)
+    # print('libGate=', libGate)
     # 創建新的分割 (newPartMap)
     newPartMap = partMap.copy()
     addPartSet = set()
     for node in addPart.allNodes():
         addPartSet.add(node.id)
-    print('addPartSet=', addPartSet)
+    # print('addPartSet=', addPartSet)
     removeSet = set()
     # 將所有衝突的 parts 都移除
     for part in partMap.values():
         if addPartSet.intersection(part['nidSet']):
             newPartMap.pop(part['rootId'], None)
-            print('remove:id=', part['rootId'], 'area=', part['libGate']['area'])
+            # print('remove:id=', part['rootId'], 'area=', part['libGate']['area'])
             removeSet = removeSet.union(part['nidSet'])
     # 將新的 newPart 加入 newPartMap
     newPartMap[addPart.id] = {
@@ -55,20 +65,21 @@ def partImprove(sol):
         'nidSet': addPartSet
     }
     # 然後將移除後產生的洞用 NAND,NOT 補起來。
+    # for nid in removeSet.difference(addPartSet):
     for nid in removeSet.difference(addPartSet):
-        if newPartMap.get(nid) is None:
-            name = node.op.upper()
-            newPartMap[node.id] = {
-                'rootId': node.id,
-                'part': addPart,
-                'libGate':glib.findByName(name),
-                'nidSet':{node.id}
-            }
-    print('newPartMap.keys()=', newPartMap.keys())
+        part = singleMap[nid]
+        newPartMap[nid] = part
+    # print('newPartMap.keys()=', newPartMap.keys())
     newCost = cost(newPartMap)
-    print('newCost=', newCost)
+  
     if newCost >= costNow: return False
     sol['partMap'] = newPartMap; sol['cost'] = newCost
+    successCount += 1
+    print("==========successCount(", successCount, ")=============")
+    print('removeSet=', removeSet)
+    print('addPartSet=', addPartSet)
+    printPartMap(newPartMap)
+    print("cost=", newCost)
     return True
 
 def singlePartMap(nodes, glib):
@@ -128,6 +139,7 @@ def randomGrowTree(root, prob):
 '''
 
 if __name__ == '__main__':
+    random.seed(172346547)
     glib = GateLib(gateLib)
     # glib.dump()
     # print(glib.find('not(_)'))
