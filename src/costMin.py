@@ -1,36 +1,94 @@
 import random
 from gateLib import *
 from collections import Counter
+from improveLoop import *
+import sys
 
-def mapMin(goal, gateLib):
-    pass
+def costMin(goal, gateLib):
+    nodes = goal.allNodes() # 取得 gate 的所有子節點
+    partMap = singlePartMap(nodes, gateLib)
+    # print(partMap)
+    sol = {'goal':goal, 'nodes':nodes, 'partMap':partMap, 'cost':cost(partMap)}
+    print('cost=', sol['cost'])
+    improveLoop(sol, partImprove, 10000, 1000)
 
-def addLibPart(gate, part, gateLib):
-    partExp = part.normalForm()
-    g = gateLib.find(partExp)
-    if g:
-        gate.partMap[partExp]=g
+def cost(partMap):
+    totalCost = 0
+    for part in partMap.values():
+        libGate = part['libGate']
+        totalCost += libGate['area']
+    return totalCost
 
-# 一開始先亂選 node，然後才呼叫 randomTree 遞迴生長
-def randomParts(gate, glib, n): # 隨機取得 n 個子樹 (可重複取得同一個數次)。
-    nodes = gate.allNodes() # 取得 gate 的所有子節點
-    partMap = {} 
-    for i in range(n):
-        chooseNode = random.choice(nodes)
+def partImprove(sol):
+    goal = sol['goal']; nodes = sol['nodes']; partMap = sol['partMap']; costNow = sol['cost']
+    # print('sol=', sol)
+    # sys.exit(1)
+    addPartExp = ''
+    while addPartExp.count('(')<2:
+        pickNode = random.choice(nodes)
         prob = random.random()
-        rTree = randomGrowTree(chooseNode, prob)
-        rExp = rTree.normalForm()
-        if glib.find(rExp):
-            partStr = f'{chooseNode.id}:{rExp}'
-            # print(partStr)
-            if partMap.get(partStr) is None:
-                partMap[partStr] = {'node':chooseNode, 'part':rTree}
-                # print(partStr)
+        addPart = randomGrowTree(pickNode, prob)
+        addPartExp = addPart.exp()
+    # print('addPartExp=', addPartExp)
+    # sys.exit(1)
+    libGate = glib.findByExp(addPartExp)
+    if libGate is None: return False
+    print('libGate=', libGate)
+    # 創建新的分割 (newPartMap)
+    newPartMap = partMap.copy()
+    addPartSet = set()
+    for node in addPart.allNodes():
+        addPartSet.add(node.id)
+    print('addPartSet=', addPartSet)
+    removeSet = set()
+    # 將所有衝突的 parts 都移除
+    for part in partMap.values():
+        if addPartSet.intersection(part['nidSet']):
+            newPartMap.pop(part['rootId'], None)
+            print('remove:id=', part['rootId'], 'area=', part['libGate']['area'])
+            removeSet = removeSet.union(part['nidSet'])
+    # 將新的 newPart 加入 newPartMap
+    newPartMap[addPart.id] = {
+        'rootId':addPart.id,
+        'part': addPart,
+        'libGate':libGate, 
+        'nidSet': addPartSet
+    }
+    # 然後將移除後產生的洞用 NAND,NOT 補起來。
+    for nid in removeSet.difference(addPartSet):
+        if newPartMap.get(nid) is None:
+            name = node.op.upper()
+            newPartMap[node.id] = {
+                'rootId': node.id,
+                'part': addPart,
+                'libGate':glib.findByName(name),
+                'nidSet':{node.id}
+            }
+    print('newPartMap.keys()=', newPartMap.keys())
+    newCost = cost(newPartMap)
+    print('newCost=', newCost)
+    if newCost >= costNow: return False
+    sol['partMap'] = newPartMap; sol['cost'] = newCost
+    return True
+
+def singlePartMap(nodes, glib):
+    partMap = {}
+    for node in nodes:
+        name = node.op.upper()
+        part = Gate(node.op, [])
+        part.id = node.id
+        partMap[part.id] = {
+            'rootId': part.id,
+            'part': part,
+            'libGate':glib.findByName(name),
+            'nidSet':{node.id}
+        }
     return partMap
 
 def randomGrowTree(root, prob):
     if not isinstance(root, Gate): return node
-    tree = Gate(root.name, [])
+    tree = Gate(root.op, [])
+    tree.id = root.id
     for param in root.params:
         if isinstance(param, Gate):
             child = '_' if random.random() < prob else randomGrowTree(param, prob)
@@ -38,6 +96,36 @@ def randomGrowTree(root, prob):
             child = '_'
         tree.params.append(child)
     return tree
+
+'''
+# 一開始先亂選 node，然後才呼叫 randomTree 遞迴生長
+def randomParts(gate, glib, partMap, n): # 隨機取得 n 個子樹 (可重複取得同一個數次)。
+    for i in range(n):
+        pickNode = random.choice(nodes)
+        prob = random.random()
+        partTree = randomGrowTree(pickNode, prob)
+        partExp = partTree.exp()
+        libGate = glib.find(partExp)
+        if libGate:
+            idList = partMap[pickNode.id]
+            if not idList:
+                idList = []
+            partKey = f"{pickNode.id}:{libGate['name']}"
+            if partMap.get(partKey) is None:
+                partMap[partKey] = partTree
+    return partMap
+
+def randomGrowTree(root, prob):
+    if not isinstance(root, Gate): return node
+    tree = Gate(root.op, [])
+    for param in root.params:
+        if isinstance(param, Gate):
+            child = '_' if random.random() < prob else randomGrowTree(param, prob)
+        else:
+            child = '_'
+        tree.params.append(child)
+    return tree
+'''
 
 if __name__ == '__main__':
     glib = GateLib(gateLib)
@@ -63,6 +151,5 @@ if __name__ == '__main__':
                 )
             )
         ,h)
-    # print(goal.normalForm())
-    partMap = randomParts(goal, glib, 10000)
-    print('\n'.join(partMap.keys()))
+    # print(goal.exp())
+    costMin(goal, glib)

@@ -1,18 +1,18 @@
 class Gate:
     count = 0
-    def __init__(self, name, params):
-        self.name = name
+    def __init__(self, op, params):
+        self.op = op
         self.params = params
         self.id = Gate.count
         Gate.count += 1
-    def normalForm(self):
+    def exp(self):
         plist = []
         for param in self.params:
             if isinstance(param, Gate):
-                plist.append(param.normalForm())
+                plist.append(param.exp())
             else:
-                plist.append("_")
-        return f"{self.name}({','.join(plist)})"
+                plist.append(param)
+        return f"{self.op}({','.join(plist)})"
     def allNodes(self):
         nodes = []
         allNodes(self, nodes)
@@ -33,23 +33,30 @@ def Nand(a,b):
 class GateLib:
     def __init__(self, gateLib):
         self.gateLib = gateLib
-        self.gmap = {}
+        self.nameMap = {}
+        self.expMap = {}
         for name, array in gateLib.items():
             area = array[0]; gates=array[1:]
-            for g in gates:
-                self.gmap[g.normalForm()]={'name':name, 'area':area, 'gate':g }
+            for gate in gates:
+                g = {'name':name, 'area':area, 'gate':gate }
+                self.nameMap[name] = g
+                self.expMap[gate.exp()] = g
 
     def dump(self):
         for name, array in gateLib.items():
             area = array[0]; gates=array[1:]
             print(name, ' ', area, end =" ")
             for g in gates:
-                print(g.normalForm(), end=" ")
+                print(g.exp(), end=" ")
             print()
 
-    def find(self, g):
-        gexp = g.normalForm() if isinstance(g, Gate) else g
-        return self.gmap.get(gexp)
+    def findByName(self, name):
+        return self.nameMap.get(name)
+
+    def findByExp(self, exp):
+        # gexp = g.exp() if isinstance(g, Gate) else g
+        # return self.gmap.get(gexp)
+        return self.expMap.get(exp)
 
 a = "_"; b= "_"; c="_"; d="_"; e="_"; f="_"; g="_"; h="_"
 
@@ -66,5 +73,10 @@ gateLib = {
 if __name__ == '__main__':
     glib = GateLib(gateLib)
     glib.dump()
-    print(glib.find('not(_)'))
+    print('NAND=', glib.findByName('NAND'))
+    print('NAND4=', glib.findByName('NAND4'))
+    print('not(_)=', glib.findByExp('not(_)'))
+    print('nand(not(nand(not(nand(_,_)),_)),_)=', glib.findByExp('nand(not(nand(not(nand(_,_)),_)),_)'))
+    print('exp:xxx=', glib.findByExp('exp:xxx'))
+    print('name:xxx=', glib.findByName('name:xxx'))
 
