@@ -1,33 +1,7 @@
 import random
 from improveLoop import *
-
-class TruthTable:
-    def __init__(self, table, nIn, names):
-        self.nIn = nIn
-        self.nOut = len(table[0])-nIn
-        self.inputs = []
-        self.outputs = []
-        self.iNames = names[:nIn]
-        self.oNames = names[nIn:]
-        for row in table:
-            self.inputs.append(row[:nIn])
-            self.outputs.append(row[nIn:])
-
-    def rows(self):
-        return len(self.inputs)
-
-class Sat:
-    def __init__(self):
-        self.map = {} # 滿足該真值表的字典查表
-        self.array = [] # 滿足該真值表的所有列
-
-    def load(self, table, oi):
-        for ti in range(table.rows()):
-            input = table.inputs[ti]
-            out = table.outputs[ti][oi]
-            if out!='0':
-                self.array.append(input) 
-                self.map[input]=out
+from truthTable import *
+from sat import *
 
 def boolMinimize(table):
     rules = []

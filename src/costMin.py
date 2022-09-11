@@ -1,5 +1,6 @@
 import random
 from gate import *
+from gateLib import *
 from collections import Counter
 from improveLoop import *
 import sys
@@ -85,8 +86,8 @@ def partImprove(sol):
 def singlePartMap(nodes, glib):
     partMap = {}
     for node in nodes:
-        name = node.op.upper()
-        part = Gate(node.op, [])
+        name = node.tag.upper()
+        part = Node(node.tag, [])
         part.id = node.id
         partMap[part.id] = {
             'rootId': part.id,
@@ -97,15 +98,15 @@ def singlePartMap(nodes, glib):
     return partMap
 
 def randomGrowTree(root, prob):
-    if not isinstance(root, Gate): return node
-    tree = Gate(root.op, [])
+    if not isinstance(root, Node): return root
+    tree = Node(root.tag, [])
     tree.id = root.id
-    for param in root.params:
-        if isinstance(param, Gate):
-            child = '_' if random.random() < prob else randomGrowTree(param, prob)
+    for child in root.childs:
+        if isinstance(child, Node):
+            child = '_' if random.random() < prob else randomGrowTree(child, prob)
         else:
             child = '_'
-        tree.params.append(child)
+        tree.childs.append(child)
     return tree
 
 if __name__ == '__main__':

@@ -1,59 +1,58 @@
-class Gate:
+class Node:
     count = 0
-    def __init__(self, op, params):
-        self.op = op
-        self.params = params
-        self.id = Gate.count
-        Gate.count += 1
+    def __init__(self, tag, childs=[]):
+        self.id = Node.count
+        self.tag = tag
+        self.childs = childs
+        Node.count += 1
+    def __and__(self, b):
+        return Node("and", [self.v, b.v])
+    def __or__(self, b):
+        return Node("or", [self.v, b.v])
+    def __xor__(self, b):
+        return Node("xor", [self.v, b.v])
+    def __not__(self, b):
+        return Node("not", [self.v])
     def exp(self):
         plist = []
-        for param in self.params:
-            if isinstance(param, Gate):
-                plist.append(param.exp())
+        for child in self.childs:
+            if isinstance(child, Node):
+                plist.append(child.exp())
             else:
-                plist.append(param)
-        return f"{self.op}({','.join(plist)})"
+                plist.append(child)
+        if len(plist)==0:
+            return f"{self.tag}"
+        else:
+            return f"{self.tag}({','.join(plist)})"
     def allNodes(self):
         nodes = []
         allNodes(self, nodes)
         return nodes
 
-def allNodes(gate, nodes):
-    nodes.append(gate)
-    for param in gate.params:
-        if isinstance(param, Gate):
-            allNodes(param, nodes)
+def allNodes(node, nodes):
+    nodes.append(node)
+    for child in node.childs:
+        if isinstance(child, Node):
+            allNodes(child, nodes)
 
 def Not(a):
-    return Gate("not", [a])
+    return Node("not", [a])
 
 def Nand(a,b):
-    return Gate("nand", [a,b])
+    return Node("nand", [a,b])
 
-class GateLib:
-    def __init__(self, gateLib):
-        self.gateLib = gateLib
-        self.nameMap = {}
-        self.expMap = {}
-        for name, array in gateLib.items():
-            area = array[0]; gates=array[1:]
-            for gate in gates:
-                g = {'name':name, 'area':area, 'gate':gate }
-                self.nameMap[name] = g
-                self.expMap[gate.exp()] = g
+def And(a,b):
+    return Node("and", [a,b])
 
-    def dump(self):
-        for name, array in self.gateLib.items():
-            area = array[0]; gates=array[1:]
-            print(name, ' ', area, end =" ")
-            for g in gates:
-                print(g.exp(), end=" ")
-            print()
+def Or(a,b):
+    return Node("or", [a,b])
 
-    def findByName(self, name):
-        return self.nameMap.get(name)
+def Xor(a,b):
+    return Node("xor", [a,b])
 
-    def findByExp(self, exp):
-        # gexp = g.exp() if isinstance(g, Gate) else g
-        # return self.gmap.get(gexp)
-        return self.expMap.get(exp)
+def vars(line):
+    values = line.split(" ")
+    vlist = []
+    for v in values:
+        vlist.append(Node(v))
+    return vlist
