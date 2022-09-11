@@ -1,5 +1,5 @@
 import random
-from gateLib import *
+from gate import *
 from collections import Counter
 from improveLoop import *
 import sys
@@ -108,39 +108,11 @@ def randomGrowTree(root, prob):
         tree.params.append(child)
     return tree
 
-'''
-# 一開始先亂選 node，然後才呼叫 randomTree 遞迴生長
-def randomParts(gate, glib, partMap, n): # 隨機取得 n 個子樹 (可重複取得同一個數次)。
-    for i in range(n):
-        pickNode = random.choice(nodes)
-        prob = random.random()
-        partTree = randomGrowTree(pickNode, prob)
-        partExp = partTree.exp()
-        libGate = glib.find(partExp)
-        if libGate:
-            idList = partMap[pickNode.id]
-            if not idList:
-                idList = []
-            partKey = f"{pickNode.id}:{libGate['name']}"
-            if partMap.get(partKey) is None:
-                partMap[partKey] = partTree
-    return partMap
-
-def randomGrowTree(root, prob):
-    if not isinstance(root, Gate): return node
-    tree = Gate(root.op, [])
-    for param in root.params:
-        if isinstance(param, Gate):
-            child = '_' if random.random() < prob else randomGrowTree(param, prob)
-        else:
-            child = '_'
-        tree.params.append(child)
-    return tree
-'''
-
 if __name__ == '__main__':
+    from gateLib1 import gateLib1
+    a='_'; b='_'; c='_'; d='_'; e='_'; f='_'; g='_'; h='_'
     random.seed(172346547)
-    glib = GateLib(gateLib)
+    glib = GateLib(gateLib1)
     # glib.dump()
     # print(glib.find('not(_)'))
     # 以下這種寫法很冗長，若用 operator override 寫，應該可以短很多
