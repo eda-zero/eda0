@@ -1,9 +1,8 @@
 # mermaid
 
 * https://mermaid-js.github.io/mermaid/
-
-* cli: https://github.com/mermaid-js/mermaid-cli
-
+    * cli: https://github.com/mermaid-js/mermaid-cli
+    * live editor : https://mermaid.live/
 
 ## graph TD
 
