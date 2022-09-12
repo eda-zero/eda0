@@ -1,4 +1,4 @@
-from gate import *
+# from gates import *
 
 class GateLib:
     def __init__(self, gateLib):

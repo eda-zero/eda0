@@ -1,5 +1,6 @@
 import random
-from gate import *
+from node import *
+from gates import *
 from gateLib import *
 from collections import Counter
 from improveLoop import *

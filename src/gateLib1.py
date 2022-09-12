@@ -1,4 +1,4 @@
-from gate import *
+from gates import *
 from gateLib import *
 
 a = "_"; b= "_"; c="_"; d="_"; e="_"; f="_"; g="_"; h="_"

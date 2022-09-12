@@ -1,0 +1,3 @@
+# SchemeDraw (讚)
+
+* [Chapter 4: Syntactic Sugar and Computing Every Function](https://notebooks.githubusercontent.com/view/ipynb?azure_maps_enabled=false&browser=chrome&color_mode=auto&commit=7df32b5190b174e640a9d38669448f280fd06b8e&device=unknown&enc_url=68747470733a2f2f7261772e67697468756275736572636f6e74656e742e636f6d2f626f617a626b2f746373636f64652f376466333262353139306231373465363430613964333836363934343866323830666430366238652f436861705f30345f53796e7461637469635f53756761722e6970796e62&enterprise_enabled=false&logged_in=false&nwo=boazbk%2Ftcscode&path=Chap_04_Syntactic_Sugar.ipynb&platform=android&repository_id=165749672&repository_type=Repository&version=102)
