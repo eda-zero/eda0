@@ -1,6 +1,9 @@
-
+# mermaid
 
 * https://mermaid-js.github.io/mermaid/
+
+* cli: https://github.com/mermaid-js/mermaid-cli
+
 
 ## graph TD
 
