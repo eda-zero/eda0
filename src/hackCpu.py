@@ -12,6 +12,9 @@ def DMux(i,sel):
     b = And(sel, i)
     return a,b
 
+def map1(f, A):
+    return list(map(f,A))
+
 def map2(f,A,B):
     R = [0]*len(A)
     for i in range(len(A)):
@@ -19,7 +22,7 @@ def map2(f,A,B):
     return R
 
 def NOT(A):
-    return map(Not, A)
+    return map1(Not, A)
 
 def AND(A,B):
     return map2(And, A, B)
@@ -46,7 +49,7 @@ def Or8Way(A):
     return Or(or74, or30)
 
 def Or16Way(A):
-    return Or(Or8Way(A[0:8]), Or8Way(A[8:15]))
+    return Or(Or8Way(A[0:8]), Or8Way(A[8:16]))
 
 def FullAdder(a,b,c):
     sum = Xor(Xor(a,b),c)
@@ -56,9 +59,11 @@ def FullAdder(a,b,c):
 def ADD(A,B,c0):
     C = [0]*(len(A)+1)
     C[0] = c0
+    S = [0]*(len(A))
     for i in range(0, len(A)):
         S[i], C[i+1] = FullAdder(A[i], B[i], C[i])
-    return S, C[len(A)]
+    # return S[len(A)-1], C[len(A)]
+    return S
 
 class Dff(Chip):
     def __init__(self, a):
@@ -72,14 +77,15 @@ class Dff(Chip):
         return self.q
 
 def Bit(a, load):
-    mo = Mux(ro, a, load)
-    reg = Dff(mo)
+    reg = Dff("")
+    mo = Mux(reg.q, a, load)
+    reg.childs[0] = mo
     return reg
 
 Reg = Bit
 
 def REG(A, load):
-    return map(lambda x:Reg(x, load), A)
+    return map1(lambda x:Reg(x, load), A)
 
 def INC(A):
     B = [0]*len(A)
@@ -92,11 +98,11 @@ def ALU(X, Y, zx, nx, zy, ny, f, no):
     Y1 = IF(zy, Zero, Y)
     X2 = IF(nx, NOT(X1), X1)
     Y2 = IF(ny, NOT(Y1), Y1)
-    O1 = IF(f, ADD(X2,Y2), AND(X2,Y2))
+    O1 = IF(f, ADD(X2,Y2,0), AND(X2,Y2))
     O2 = IF(no, NOT(O1), O1)
-    zr = NOT(Or16Way(O2))
+    zr = Not(Or16Way(O2))
     ng = O2[15]
-    return O, zr, ng
+    return O2, zr, ng
 
 def CPU(IM, I, reset):
     # decoder
@@ -114,7 +120,8 @@ def CPU(IM, I, reset):
     D = REG(ALU_OUT, Dload)
     # ALU
     AM = MUX(A, IM)
-    ALUout, outM, zr, ng = ALU(D, AM, c1, c2, c3, c4, c5, c6)
+    ALU_OUT, zr, ng = ALU(D, AM, c1, c2, c3, c4, c5, c6)
+    OUT_M = ALU_OUT
     # JUMP
     ngzr = Or(ng, zr)
     gt = Not(ngzr)
@@ -126,4 +133,35 @@ def CPU(IM, I, reset):
     PCload = And(isC, passJump)
     PC_OUT = PC(Aout, PCload, 1, reset)
     writeM = And(isC, d3); 
-    return OM, writeM, ADDRESS, PC_OUT[0:15]
+    return OUT_M, writeM, ADDRESS, PC_OUT[0:15]
+
+def dump(name, chips):
+    print(f"============{name}============")
+    if isinstance(chips, list) or isinstance(chips, tuple):
+        r = []
+        for chip in chips:
+            r.append(str(chip))
+        print(r)
+    else:
+        print(chips)
+
+if __name__ == '__main__':
+    sel="sel"; a = "a"; b= "b"; c="c"; d="d"; load="load"
+    A = [f"A{i}" for i in range(16)]
+    B = [f"B{i}" for i in range(16)]
+    dump("Mux", Mux(sel, a, b))
+    dump("If", If(sel, a, b))
+    dump("DMux", DMux(sel, a))
+    dump("NOT16", NOT(A))
+    dump("AND16", AND(A,B))
+    dump("OR16", OR(A,B))
+    dump("XOR16", XOR(A,B))
+    dump("MUX16", MUX(sel,A,B))
+    dump("Or16Way", Or16Way(A))
+    dump("FullAdder", FullAdder(a,b,c))
+    dump("Add16", ADD(A,B,c))
+    dump("Dff", Dff(a))
+    dump("Bit", Bit(a, load))
+    dump("Register", REG(A, load))
+    O, zr, ng = ALU(A,B,"zx","nx","zy","ny","f","no")
+    dump("ALU.ng", ng)

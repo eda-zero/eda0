@@ -6,16 +6,8 @@ class Node:
         self.childs = childs
         Node.count += 1
     def exp(self):
-        plist = []
-        for child in self.childs:
-            if isinstance(child, Node):
-                plist.append(child.exp())
-            else:
-                plist.append(child)
-        if len(plist)==0: # leaf node
-            return f"{self.tag}"
-        else: # node with childs
-            return f"{self.tag}({','.join(plist)})"
+        nodeMap = {}
+        return exp(self, nodeMap)
     def __str__(self):
         return self.exp()
     def allNodes(self):
@@ -23,8 +15,30 @@ class Node:
         allNodes(self, nodes)
         return nodes
 
+def exp(node, nodeMap):
+    if not isinstance(node, Node): return str(node)
+    if not nodeMap.get(node.id) is None: return f"#G{node.id}"
+    nodeMap[node.id] = node
+    plist = []
+    for child in node.childs:
+        if isinstance(child, Node):
+            plist.append(exp(child, nodeMap))
+        else:
+            plist.append(str(child))
+    if len(plist)==0: # leaf node
+        return f"{node.tag}"
+    else: # node with childs
+        return f"{node.tag}({','.join(plist)})"
+
 def allNodes(node, nodes):
     nodes.append(node)
     for child in node.childs:
         if isinstance(child, Node):
             allNodes(child, nodes)
+
+def allNodeMap(node, nodeMap):
+    if not nodeMap.get(node.id) is None:return # 不要重複展開
+    nodeMap[node.id] = node
+    for child in node.childs:
+        if isinstance(child, Node):
+            allNodeMap(child, nodeMap)
