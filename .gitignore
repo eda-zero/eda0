@@ -4,3 +4,5 @@
 bak
 __pycache__
 *.exe
+*.svg
+*.html
