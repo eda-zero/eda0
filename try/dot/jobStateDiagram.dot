@@ -1,0 +1,50 @@
+digraph JobStateDiagram
+{
+  rankdir=LR;
+  size="8,5";
+  concentrate=true;
+
+  node  [style="rounded,filled,bold", shape=box, fixedsize=true, width=1.3, fontname="Arial"];
+  Created   [fillcolor=black, shape=circle, label="", width=0.25];
+  Destroyed [fillcolor=black, shape=doublecircle, label="", width=0.3];
+  Empty     [fillcolor="#a0ffa0"];
+  Failed    [fillcolor="#ffa0a0"];
+  Announced [fillcolor="#a0ffa0"];
+  Assigned  [fillcolor="#a0ffa0"];
+  Working   [fillcolor="#a0ffa0"];
+  Ready     [fillcolor="#a0ffa0"];
+  TimedOut  [fillcolor="#ffa0a0"];
+
+  {
+    rank=source; Created; Destroyed;
+  }
+  {
+    rank=same;Announced;Failed;
+  }
+  {
+    rank=same;Assigned;TimedOut;
+  }
+
+  edge  [style=bold, fontname="Arial", weight=100]
+  Empty     -> Announced [ label="announce"   ];
+  Announced -> Assigned  [ label="assign"     ];
+  Assigned  -> Working   [ label="start"      ];
+  Working   -> Ready     [ label="finish"     ];
+  Ready     -> Empty     [ label="revoke", weight=1     ];
+
+  edge  [color="#aaaaaa", weight=1]
+  Announced -> TimedOut  [ label="timeout"    ];
+  Assigned  -> TimedOut  [ label="timeout"    ];
+  Working   -> TimedOut  [ label="timeout"    ];
+  Working   -> Failed    [ label="error"      ];
+  TimedOut  -> Announced [ label="announce"   ];
+  TimedOut  -> Empty     [ label="revoke"     ];
+  Failed    -> Announced [ label="announce"   ];
+  Failed    -> Empty     [ label="revoke"     ];
+
+  Created   -> Empty     [ label="initialize" ];
+  Empty     -> Destroyed [ label="finalize"   ];
+  Announced -> Empty     [ label="revoke"     ];
+  Assigned  -> Empty     [ label="revoke"     ];
+  Working   -> Empty     [ label="revoke"     ];
+}

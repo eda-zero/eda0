@@ -26,3 +26,12 @@ if __name__ == '__main__':
     print('a&(b|c)=', a&(b|c))
     print('~a&(b|c)=', ~a&(b|c))
 
+# 三元組如何用 NAND 做出來
+# https://introtcs.org/public/lec_03a_computing_every_function.html
+'''
+def IF(cond,a,b):
+    notcond = NAND(cond,cond)
+    temp = NAND(b,notcond)
+    temp1 = NAND(a,cond)
+    return NAND(temp,temp1)
+'''

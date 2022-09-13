@@ -1,0 +1,12 @@
+// https://stackoverflow.com/questions/7922960/block-diagram-layout-with-dot-graphviz
+digraph G {
+    graph [rankdir = LR];
+
+    node[shape=record];
+    g1[label="{ {<a>a|<b>b}|AND|{<o>o} }"];
+    g2[label="{ {<a>a|<b>b}|AND|{<o>o} }"];
+    g3[label="{ {<a>a|<b>b}|OR|{<o>o} }"];
+
+    g1:o -> g3:a
+    g2:o -> g3:b
+}

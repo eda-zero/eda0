@@ -1,0 +1,9 @@
+digraph ok {
+    node [shape="rectangle"]
+    a [pos="0,0!"]
+    b [pos="1,1!"]
+    c [pos="5,2!"]
+    a->b->c
+}
+// "%f,%f('!')?" representing the point (x,y). The optional '!' indicates the node position should not change (input-only).
+// https://observablehq.com/@magjac/placing-graphviz-nodes-in-fixed-positions

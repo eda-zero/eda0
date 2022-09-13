@@ -1,0 +1,5 @@
+digraph ok {
+    node[shape ="rectangle" pos="0,0!"] "name0";
+    node[shape ="rectangle" pos="1,1!"] "name1";
+    node[shape ="rectangle" pos="5,2!"] "name2";
+}
