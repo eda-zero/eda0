@@ -1,4 +1,4 @@
-from gates import *
+from chips import *
 
 def Mux(sel,a,b):
     return Or(And(Not(sel),a), And(sel, b))
@@ -134,16 +134,6 @@ def CPU(IM, I, reset):
     PC_OUT = PC(Aout, PCload, 1, reset)
     writeM = And(isC, d3); 
     return OUT_M, writeM, ADDRESS, PC_OUT[0:15]
-
-def dump(name, chips):
-    print(f"============{name}============")
-    if isinstance(chips, list) or isinstance(chips, tuple):
-        r = []
-        for chip in chips:
-            r.append(str(chip))
-        print(r)
-    else:
-        print(chips)
 
 if __name__ == '__main__':
     sel="sel"; a = "a"; b= "b"; c="c"; d="d"; load="load"

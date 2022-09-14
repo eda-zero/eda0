@@ -1,16 +1,16 @@
 from node import *
 
 class Exp(Node):
-    def __init__(self, tag, inputs=[]):
+    def __init__(self, tag, inputs={}):
         super(Exp, self).__init__(tag, inputs)
     def __and__(self, b):
-        return Exp("and", [self, b])
+        return Exp("and", {"a":self, "b":b})
     def __or__(self, b):
-        return Exp("or", [self, b])
+        return Exp("or", {"a":self, "b":b})
     def __xor__(self, b):
-        return Exp("xor", [self, b])
+        return Exp("xor", {"a":self, "b":b})
     def __invert__(self):
-        return Exp("not", [self])
+        return Exp("not", {"a":self})
 
 def vars(line):
     vnames = line.split(" ")

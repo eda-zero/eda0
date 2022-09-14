@@ -1,4 +1,4 @@
-# from gates import *
+# from chips import *
 
 class GateLib:
     def __init__(self, gateLib):
@@ -20,7 +20,7 @@ class GateLib:
                 print(g.exp(), end=" ")
             print()
 
-    def findByName(self, name):
+    def findByName(self, name): 
         return self.nameMap.get(name)
 
     def findByExp(self, exp):

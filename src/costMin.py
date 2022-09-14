@@ -1,6 +1,6 @@
 import random
 from node import *
-from gates import *
+from chips import *
 from gateLib import *
 from collections import Counter
 from improveLoop import *
@@ -88,7 +88,7 @@ def singlePartMap(nodes, glib):
     partMap = {}
     for node in nodes:
         name = node.tag.upper()
-        part = Node(node.tag, [])
+        part = Node(node.tag)
         part.id = node.id
         partMap[part.id] = {
             'rootId': part.id,
@@ -100,14 +100,14 @@ def singlePartMap(nodes, glib):
 
 def randomGrowTree(root, prob):
     if not isinstance(root, Node): return root
-    tree = Node(root.tag, [])
+    tree = Node(root.tag)
     tree.id = root.id
-    for input in root.inputs:
-        if isinstance(input, Node):
-            input = '_' if random.random() < prob else randomGrowTree(input, prob)
+    for k,n in root.inputs.items():
+        if isinstance(n, Node):
+            n = '_' if random.random() < prob else randomGrowTree(n, prob)
         else:
-            input = '_'
-        tree.inputs.append(input)
+            n = '_'
+        tree.inputs[k] = n
     return tree
 
 if __name__ == '__main__':
