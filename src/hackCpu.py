@@ -79,7 +79,7 @@ class Dff(Chip):
 def Bit(a, load):
     reg = Dff("")
     mo = Mux(reg.q, a, load)
-    reg.childs[0] = mo
+    reg.inputs[0] = mo
     return reg
 
 Reg = Bit

@@ -1,8 +1,8 @@
 from node import *
 
 class Chip(Node):
-    def __init__(self, tag, childs=[]):
-        super(Chip, self).__init__(tag, childs)
+    def __init__(self, tag, inputs=[]):
+        super(Chip, self).__init__(tag, inputs)
 
 def Not(a):
     return Chip("not", [a])
@@ -20,6 +20,7 @@ def Xor(a,b):
     return Chip("xor", [a,b])
 
 def Mux(sel,a,b):
+    # c = Chip("mux", [sel,a,b])
     return Or(And(Not(sel),a), And(sel, b))
 
 def If(cond,a,b):

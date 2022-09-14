@@ -1,9 +1,9 @@
 class Node:
     count = 0
-    def __init__(self, tag, childs=[]):
+    def __init__(self, tag, inputs=[]):
         self.id = Node.count
         self.tag = tag
-        self.childs = childs
+        self.inputs = inputs
         Node.count += 1
     def exp(self):
         nodeMap = {}
@@ -20,25 +20,25 @@ def exp(node, nodeMap):
     if not nodeMap.get(node.id) is None: return f"#G{node.id}"
     nodeMap[node.id] = node
     plist = []
-    for child in node.childs:
-        if isinstance(child, Node):
-            plist.append(exp(child, nodeMap))
+    for input in node.inputs:
+        if isinstance(input, Node):
+            plist.append(exp(input, nodeMap))
         else:
-            plist.append(str(child))
+            plist.append(str(input))
     if len(plist)==0: # leaf node
         return f"{node.tag}"
-    else: # node with childs
+    else: # node with inputs
         return f"{node.tag}({','.join(plist)})"
 
 def allNodes(node, nodes):
     nodes.append(node)
-    for child in node.childs:
-        if isinstance(child, Node):
-            allNodes(child, nodes)
+    for input in node.inputs:
+        if isinstance(input, Node):
+            allNodes(input, nodes)
 
 def allNodeMap(node, nodeMap):
     if not nodeMap.get(node.id) is None:return # 不要重複展開
     nodeMap[node.id] = node
-    for child in node.childs:
-        if isinstance(child, Node):
-            allNodeMap(child, nodeMap)
+    for input in node.inputs:
+        if isinstance(input, Node):
+            allNodeMap(input, nodeMap)

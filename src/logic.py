@@ -1,8 +1,8 @@
 from node import *
 
 class Exp(Node):
-    def __init__(self, tag, childs=[]):
-        super(Exp, self).__init__(tag, childs)
+    def __init__(self, tag, inputs=[]):
+        super(Exp, self).__init__(tag, inputs)
     def __and__(self, b):
         return Exp("and", [self, b])
     def __or__(self, b):

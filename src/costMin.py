@@ -102,12 +102,12 @@ def randomGrowTree(root, prob):
     if not isinstance(root, Node): return root
     tree = Node(root.tag, [])
     tree.id = root.id
-    for child in root.childs:
-        if isinstance(child, Node):
-            child = '_' if random.random() < prob else randomGrowTree(child, prob)
+    for input in root.inputs:
+        if isinstance(input, Node):
+            input = '_' if random.random() < prob else randomGrowTree(input, prob)
         else:
-            child = '_'
-        tree.childs.append(child)
+            input = '_'
+        tree.inputs.append(input)
     return tree
 
 if __name__ == '__main__':
