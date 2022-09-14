@@ -5,10 +5,10 @@ from operator import itemgetter
 class Chip(Node):
     def __init__(self, tag, inputs={}):
         super(Chip, self).__init__(tag, inputs)
-        self.type = "?"
-    def str(self, how=""):
+        self.show = "?"
+    def str(self, show=""):
         head = f"{self.tag}({','.join(self.inputs.keys())})"
-        if how == 'exp':
+        if show == 'exp':
             expMap = {}
             for k,v in self.outputs.items():
                 expMap[k] = v.exp()
@@ -16,16 +16,13 @@ class Chip(Node):
         else:
             return f"{head}=>{','.join(self.outputs.keys())}"
     def __str__(self):
-        if self.type == 'gate':
-            return self.str('exp')
-        else:
-            return self.str()
+        return self.str(self.show)
 
 # 只有一個輸出的基本 Chip 稱為 Gate，像是 Not, And, Or, Xor, Mux
 # 從源頭追蹤回去 inputs 可以取得所有輸入元件
 def Gate(tag, inputs):
     chip = Chip(tag, inputs)
-    chip.type = 'gate'
+    chip.show = 'exp'
     chip.outputs = {'o':chip}
     return chip
 
@@ -46,13 +43,13 @@ def Xor(a,b):
 
 def Mux(sel,a,b):
     chip = Chip("mux", {"sel":sel, "a":a, "b":b})
-    chip.type = 'gate'
+    chip.show = 'exp'
     chip.outputs = {"o":Or(And(Not(sel),a), And(sel, b))}
     return chip
 
 def If(cond,a,b):
     chip = Chip("if", {"cond":cond, "a":a, "b":b})
-    chip.type = 'gate'
+    chip.show = 'exp'
     chip.outputs = {"o":Or(And(sel,a), And(Not(sel), b))}
     return chip
 
@@ -107,7 +104,7 @@ def IF(cond,A,B):
 def Or8Way(A):
     assert len(A)==8
     chip = Chip("Or8Way", {"A":A})
-    chip.type = 'gate'
+    chip.show = 'exp'
     or76 = Or(A[7], A[6])
     or54 = Or(A[5], A[4])
     or32 = Or(A[3], A[2])
@@ -119,7 +116,7 @@ def Or8Way(A):
 
 def Or16Way(A):
     chip = Chip("Or16Way", {"A":A})
-    chip.type = 'gate'
+    chip.show = 'exp'
     chip.outputs = {"o":Or(Or8Way(A[0:8]), Or8Way(A[8:16]))}
     return chip
 
