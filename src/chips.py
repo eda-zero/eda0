@@ -6,6 +6,10 @@ class Chip(Node):
     def __init__(self, tag, inputs={}):
         super(Chip, self).__init__(tag, inputs)
         self.show = "?"
+    def o(self):
+        return self.outputs["o"]
+    def O(self):
+        return self.outputs["O"]
     def str(self, show=""):
         head = f"{self.tag}({','.join(self.inputs.keys())})"
         if show == 'exp':
@@ -50,7 +54,7 @@ def Mux(sel,a,b):
 def If(cond,a,b):
     chip = Chip("if", {"cond":cond, "a":a, "b":b})
     chip.show = 'exp'
-    chip.outputs = {"o":Or(And(sel,a), And(Not(sel), b))}
+    chip.outputs = {"o":Or(And(cond,a), And(Not(cond), b))}
     return chip
 
 def DMux(i,sel):
@@ -99,7 +103,7 @@ def MUX(sel,A,B):
     return gateArray2("mux", lambda a,b:Mux(sel,a,b), A, B)
 
 def IF(cond,A,B):
-    return gateArray2("if", lambda a,b:If(sel,a,b), A, B)
+    return gateArray2("if", lambda a,b:If(cond,a,b), A, B)
 
 def Or8Way(A):
     assert len(A)==8
@@ -115,6 +119,7 @@ def Or8Way(A):
     return chip
 
 def Or16Way(A):
+    assert len(A)==16
     chip = Chip("Or16Way", {"A":A})
     chip.show = 'exp'
     chip.outputs = {"o":Or(Or8Way(A[0:8]), Or8Way(A[8:16]))}
@@ -128,6 +133,7 @@ def FullAdder(a,b,c):
     return chip
 
 def ADD(A,B,cin):
+    assert len(A)==len(B)
     chip = Chip(f"ADD{len(A)}", {"A":A, "B":B, "cin":cin})
     S = [0]*len(A)
     C = [0]*(len(A)+1)
@@ -139,22 +145,24 @@ def ADD(A,B,cin):
     chip.outputs = {"SUM":S, "cout":C[len(A)]}
     return chip
 
-'''
 class Dff(Chip):
     def __init__(self, a):
-        super(Dff, self).__init__("dff", [a])
+        super(Dff, self).__init__("dff", {"a":a})
         self.q = 'X'
-        self.outputs = [self.q]
+        self.outputs = {"o":self.q}
     def clock():
         q0 = self.q
         self.q = a.out()
         return q0
 
 def Bit(a, load):
+    chip = Chip(f"Bit", {"a":a, "load":load})
     mo = Mux(ro, a, load)
     reg = Dff(mo)
-    return reg
+    chip.outputs={"o":reg.o()}
+    return chip
 
+'''
 Reg = Bit
 
 def REG(A, load):
@@ -178,7 +186,7 @@ def dump(name, chips):
         print(chips)
 
 if __name__ == '__main__':
-    sel="_"; a = "_"; b= "_"; c="_"; d="_"; load="_"
+    sel="sel"; a = "a"; b= "b"; c="c"; d="d"; load="load"
     A = [f"A{i}" for i in range(16)]
     B = [f"B{i}" for i in range(16)]
     dump("And", And(a, b))
@@ -194,3 +202,5 @@ if __name__ == '__main__':
     dump("Or16Way", Or16Way(A))
     dump("FullAdder", FullAdder(a,b,c).str('exp'))
     dump("Add16", ADD(A,B,c))
+    dump("Dff", Dff(a))
+    dump("Bit", Bit(a, load))
