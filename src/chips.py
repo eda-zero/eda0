@@ -203,4 +203,4 @@ if __name__ == '__main__':
     dump("FullAdder", FullAdder(a,b,c).str('exp'))
     dump("Add16", ADD(A,B,c))
     dump("Dff", Dff(a))
-    dump("Bit", Bit(a, load))
+    # dump("Bit", Bit(a, load))
