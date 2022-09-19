@@ -1,7 +1,8 @@
 from node import *
 import json
 from operator import itemgetter
-# Chip 則是通用的，包含了單輸出的 Gate 與多輸出的晶片
+
+# Chip 則是通用的，包含了《線 Wire，單輸出的 Gate 與多輸出的晶片》
 class Chip(Node):
     def __init__(self, tag, inputs={}):
         super(Chip, self).__init__(tag, inputs)
@@ -30,6 +31,9 @@ def Gate(tag, inputs):
     chip.outputs = {'o':chip}
     return chip
 
+def Wire(a):
+    return Gate("wire", {"a", a})
+
 def Not(a):
     return Gate("not", {"a":a})
 
@@ -48,7 +52,7 @@ def Xor(a,b):
 def Mux(sel,a,b):
     chip = Chip("mux", {"sel":sel, "a":a, "b":b})
     chip.show = 'exp'
-    chip.outputs = {"o":Or(And(Not(sel),a), And(sel, b))}
+    chip.outputs = {"o":Or(And(Not(sel),chip.inputs["a"]), And(sel, chip.inputs["b"]))}
     return chip
 
 def If(cond,a,b):
@@ -87,6 +91,21 @@ def gateArray2(name, gate, A, B):
     chip.outputs={"O":map2(gate, A, B)}
     return chip
 
+def WIRE(A):
+    return gateArray1("wire", Wire, A)
+
+def BUS(n):
+    A = [0]*n
+    return WIRE(A)
+
+def ZERO(n):
+    A = [0]*n
+    return WIRE(A)
+
+def ONE(n):
+    A = [1]*n
+    return WIRE(A)
+
 def NOT(A):
     return gateArray1("not", Not, A)
 
@@ -100,10 +119,10 @@ def XOR(A,B):
     return gateArray2("xor", Xor, A, B)
 
 def MUX(sel,A,B):
-    return gateArray2("mux", lambda a,b:Mux(sel,a,b), A, B)
+    return gateArray2("mux", lambda a,b:Mux(sel,a,b).o(), A, B)
 
 def IF(cond,A,B):
-    return gateArray2("if", lambda a,b:If(cond,a,b), A, B)
+    return gateArray2("if", lambda a,b:If(cond,a,b).o(), A, B)
 
 def Or8Way(A):
     assert len(A)==8
@@ -142,7 +161,7 @@ def ADD(A,B,cin):
         o = FullAdder(A[i], B[i], C[i]).outputs
         S[i] = o['sum']
         C[i+1] = o['carry']
-    chip.outputs = {"SUM":S, "cout":C[len(A)]}
+    chip.outputs = {"O":S, "cout":C[len(A)]}
     return chip
 
 class Dff(Chip):
@@ -152,28 +171,27 @@ class Dff(Chip):
         self.outputs = {"o":self.q}
     def clock():
         q0 = self.q
-        self.q = a.out()
+        self.q = self.inputs["a"].o()
         return q0
 
 def Bit(a, load):
     chip = Chip(f"Bit", {"a":a, "load":load})
-    mo = Mux(ro, a, load)
-    reg = Dff(mo)
+    mux = Mux("_", a, load)
+    reg = Dff(mux.o())
+    mux.inputs["a"] = reg.o()
     chip.outputs={"o":reg.o()}
     return chip
 
-'''
 Reg = Bit
 
 def REG(A, load):
-    return map(lambda x:Reg(x, load), A)
+    chip = Chip(f"reg{len(A)}", {"A":A, "load":load})
+    chip.outputs={"O":map1(lambda x:Reg(x, chip.inputs["load"]), A)}
+    return chip
 
 def INC(A):
     B = [0]*len(A)
-    B[0] = 1
-    return ADD(A, B)
-
-'''
+    return ADD(A, B, 1)
 
 def dump(name, chips):
     print(f"============{name}============")
