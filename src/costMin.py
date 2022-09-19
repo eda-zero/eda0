@@ -104,7 +104,7 @@ def randomGrowTree(root, prob):
     tree.id = root.id
     for k,n in root.inputs.items():
         if isinstance(n, Node):
-            n = '_' if random.random() < prob else randomGrowTree(n, prob)
+            n = '_' if random.random() > prob else randomGrowTree(n, prob)
         else:
             n = '_'
         tree.inputs[k] = n
