@@ -1,10 +1,20 @@
+from collections import OrderedDict
+
 class Node:
     count = 0
     def __init__(self, tag, inputs={}):
         self.id = Node.count
         self.tag = tag
-        self.inputs = inputs.copy()
+        self.inputs = OrderedDict(inputs) # 按順序排，轉成 exp() 才會有固定順序。 self.inputs = inputs.copy()
+        self.values = None
+        self.outputs = {}
         Node.count += 1
+    def clear():
+        raise
+    def eval():
+        raise
+    def o():
+        return self.outputs.get('o')
     def exp(self):
         nodeMap = {}
         return exp(self, nodeMap)
@@ -22,7 +32,6 @@ def exp(node, nodeMap):
     if not nodeMap.get(node.id) is None: return f"#G{node.id}"
     nodeMap[node.id] = node
     plist = []
-    # print("node.inputs=", node.inputs)
     for n in node.inputs.values():
         if isinstance(n, Node):
             plist.append(exp(n, nodeMap))

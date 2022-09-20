@@ -2,15 +2,24 @@ from node import *
 import json
 from operator import itemgetter
 
+class Value(Node):
+    def __init__(self, value):
+        super(Value, self).__init__("value", {})
+        self.values = {"o":value}
+    def clear(self):
+        pass
+    def eval(self):
+        pass
+    def exp(self):
+        return str(self.value)
+
 # Chip 則是通用的，包含了《線 Wire，單輸出的 Gate 與多輸出的晶片》
 class Chip(Node):
     def __init__(self, tag, inputs={}):
         super(Chip, self).__init__(tag, inputs)
         self.show = "?"
-    def o(self):
-        return self.outputs["o"]
-    def O(self):
-        return self.outputs["O"]
+        self.values = None
+
     def str(self, show=""):
         head = f"{self.tag}({','.join(self.inputs.keys())})"
         if show == 'exp':
@@ -20,8 +29,48 @@ class Chip(Node):
             return f"{head}=>{json.dumps(expMap)}"
         else:
             return f"{head}=>{','.join(self.outputs.keys())}"
+    
     def __str__(self):
         return self.str(self.show)
+    
+    def clear(self):
+        self.values = None
+        for k, v in self.outputs.items():
+            if v != self and isinstance(v, Node):
+                v.clear()
+    
+    def eval(self):
+        assert isinstance(self, Node)
+        if self.values is not None: return self.values
+        for k, v in self.outputs.items():
+            if v != self and isinstance(v, Chip):
+                v.eval()
+        op = self.tag
+        print('op=', op)
+        o = None
+        a = self.inputs['a']
+        b = self.inputs['b']
+        if isinstance(a, Chip): a = a.values['o']
+        if isinstance(b, Chip): b = b.values['o']
+        if op == "not":
+            o = 0 if a==1 else 1
+        elif op == "and":g
+            o = 1 if a==1 and b==1 else 0
+        elif op == "or":
+            o = 1 if a==1 or b==1 else 0
+        elif op == "xor":
+            o = 1 if a!=b else 0
+        if o is not None: self.values = {"o":o}
+
+class Dff(Chip):
+    def __init__(self, a):
+        super(Dff, self).__init__("dff", {"a":a})
+        self.q = 'X'
+        self.outputs = {"o":self.q}
+    def clock():
+        q0 = self.q
+        self.q = self.inputs["a"].o()
+        return q0
 
 # 只有一個輸出的基本 Chip 稱為 Gate，像是 Not, And, Or, Xor, Mux
 # 從源頭追蹤回去 inputs 可以取得所有輸入元件
@@ -52,7 +101,7 @@ def Xor(a,b):
 def Mux(sel,a,b):
     chip = Chip("mux", {"sel":sel, "a":a, "b":b})
     chip.show = 'exp'
-    chip.outputs = {"o":Or(And(Not(sel),chip.inputs["a"]), And(sel, chip.inputs["b"]))}
+    chip.outputs = {"o":Or(And(Not(sel),a), And(sel, b))}
     return chip
 
 def If(cond,a,b):
@@ -164,16 +213,6 @@ def ADD(A,B,cin):
     chip.outputs = {"O":S, "cout":C[len(A)]}
     return chip
 
-class Dff(Chip):
-    def __init__(self, a):
-        super(Dff, self).__init__("dff", {"a":a})
-        self.q = 'X'
-        self.outputs = {"o":self.q}
-    def clock():
-        q0 = self.q
-        self.q = self.inputs["a"].o()
-        return q0
-
 def Bit(a, load):
     chip = Chip(f"Bit", {"a":a, "load":load})
     mux = Mux("_", a, load)
@@ -208,6 +247,7 @@ if __name__ == '__main__':
     A = [f"A{i}" for i in range(16)]
     B = [f"B{i}" for i in range(16)]
     dump("And", And(a, b))
+    dump("Xor", Xor(a, b))
     dump("Mux", Mux(sel, a, b))
     dump("If", If(sel, a, b))
     dump("DMux", DMux(sel, a).str('exp'))
@@ -221,4 +261,6 @@ if __name__ == '__main__':
     dump("FullAdder", FullAdder(a,b,c).str('exp'))
     dump("Add16", ADD(A,B,c))
     dump("Dff", Dff(a))
+
+
     # dump("Bit", Bit(a, load))
