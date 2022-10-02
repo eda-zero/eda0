@@ -46,13 +46,19 @@ if __name__ == '__main__':
         if t%4==0: c=(c+1)%2
         g1.inputs={"a":a, "b":b}
     '''
-    sel = Value(1); a = Value(1); b = Value(0)
+    sel = Value(1); a = Value(1); b = Value(0); c = Value(1)
     and1 = And(a,b)
     print('and1=', and1)
     print('eval(and1)=', eval(and1))
     or1 = Or(a,b)
     print('or1=', or1)
     print('eval(or1)=', eval(or1))
-    mux = Mux(sel, a, b)
-    print('mux=', mux)
-    print('eval(mux)=', eval(mux))
+    mux1 = Mux(sel, a, b)
+    print('mux1=', mux1)
+    print('eval(mux1)=', eval(mux1))
+    if1 = If(sel, a, b)
+    print('if1=', if1)
+    print('eval(if1)=', eval(if1))
+    fa1 = FullAdder(a,b,c)
+    print('fa1=', fa1)
+    print('eval(fa1)=', eval(fa1))
