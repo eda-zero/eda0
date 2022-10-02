@@ -9,11 +9,11 @@ class Node:
         self.values = None
         self.outputs = {}
         Node.count += 1
-    def clear():
+    def clear(self):
         raise
-    def eval():
+    def eval(self):
         raise
-    def o():
+    def o(self):
         return self.outputs.get('o')
     def exp(self):
         nodeMap = {}

@@ -42,24 +42,30 @@ class Chip(Node):
     def eval(self):
         assert isinstance(self, Node)
         if self.values is not None: return self.values
-        for k, v in self.outputs.items():
-            if v != self and isinstance(v, Chip):
-                v.eval()
         op = self.tag
         print('op=', op)
         o = None
         a = self.inputs['a']
-        b = self.inputs['b']
-        if isinstance(a, Chip): a = a.values['o']
-        if isinstance(b, Chip): b = b.values['o']
+        a.eval()
+        print('a.values=', a.values, 'a.tag=', a.tag)
+        if isinstance(a, Node): a = a.values['o']
         if op == "not":
             o = 0 if a==1 else 1
-        elif op == "and":g
-            o = 1 if a==1 and b==1 else 0
-        elif op == "or":
-            o = 1 if a==1 or b==1 else 0
-        elif op == "xor":
-            o = 1 if a!=b else 0
+        elif op in ["and", "or", "not"]:
+            b = self.inputs['b']
+            b.eval()
+            if isinstance(b, Node): b = b.values['o']
+            if op == "and":
+                o = 1 if a==1 and b==1 else 0
+            elif op == "or":
+                o = 1 if a==1 or b==1 else 0
+            elif op == "xor":
+                o = 1 if a!=b else 0
+        else:
+            for k, v in self.outputs.items():
+                if v != self and isinstance(v, Chip):
+                    v.eval()
+                if k == "o": o = v.values['o']
         if o is not None: self.values = {"o":o}
 
 class Dff(Chip):

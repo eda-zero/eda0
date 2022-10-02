@@ -1,5 +1,3 @@
-# from chips import *
-
 class GateLib:
     def __init__(self, gateLib):
         self.gateLib = gateLib

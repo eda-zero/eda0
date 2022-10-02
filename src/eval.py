@@ -3,7 +3,7 @@ from chips import *
 def eval(chip):
     chip.clear()
     chip.eval()
-    return chip.outs
+    return chip.values
 
 class Counter(Chip):
     def __init__(self, n):
@@ -19,12 +19,10 @@ class Counter(Chip):
         self.counter = (self.counter+1) % self.max
 
 if __name__ == '__main__':
-    '''
     C = Counter(2)
     for i in range(20):
         print("C.O()=", C.O())
         C.inc()
-    '''
     '''
     a = 0; b=0;
     #g1 = And(a,b)
@@ -48,7 +46,13 @@ if __name__ == '__main__':
         if t%4==0: c=(c+1)%2
         g1.inputs={"a":a, "b":b}
     '''
-    sel = Value(0); a = Value(0); b = Value(0)
+    sel = Value(1); a = Value(1); b = Value(0)
+    and1 = And(a,b)
+    print('and1=', and1)
+    print('eval(and1)=', eval(and1))
+    or1 = Or(a,b)
+    print('or1=', or1)
+    print('eval(or1)=', eval(or1))
     mux = Mux(sel, a, b)
     print('mux=', mux)
     print('eval(mux)=', eval(mux))
