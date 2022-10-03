@@ -9,10 +9,7 @@ class Node:
         self.values = None
         self.outputs = {}
         Node.count += 1
-    def clear(self):
-        raise
-    def eval(self):
-        raise
+
     def o(self):
         return self.outputs.get('o')
     def exp(self):

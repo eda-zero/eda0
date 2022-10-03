@@ -6,12 +6,10 @@ class Value(Node):
     def __init__(self, value):
         super(Value, self).__init__("value", {})
         self.values = {"o":value}
-    def clear(self):
-        pass
-    def eval(self):
-        pass
     def exp(self):
-        return str(self.value)
+        return str(self.values['o'])
+    def __str__(self):
+        return self.exp()
 
 # Chip 則是通用的，包含了《線 Wire，單輸出的 Gate 與多輸出的晶片》
 class Chip(Node):
@@ -32,44 +30,6 @@ class Chip(Node):
     
     def __str__(self):
         return self.str(self.show)
-    
-    def clear(self):
-        self.values = None
-        for k, v in self.outputs.items():
-            if v != self and isinstance(v, Node):
-                v.clear()
-    
-    def eval(self):
-        assert isinstance(self, Node)
-        if self.values is not None: return self.values
-        op = self.tag
-        # print('op=', op)
-        o = None
-        a = self.inputs['a']
-        a.eval()
-        # print('a.values=', a.values, 'a.tag=', a.tag)
-        if isinstance(a, Node): a = a.values['o']
-        if op == "not":
-            o = 0 if a==1 else 1
-            self.values = {"o":o}
-        elif op in ["and", "or", "xor"]:
-            b = self.inputs['b']
-            b.eval()
-            if isinstance(b, Node): b = b.values['o']
-            if op == "and":
-                o = 1 if a==1 and b==1 else 0
-            elif op == "or":
-                o = 1 if a==1 or b==1 else 0
-            elif op == "xor":
-                o = 1 if a!=b else 0
-            self.values = {"o":o}
-        else:
-            values = {}
-            for k, v in self.outputs.items():
-                if v != self and isinstance(v, Chip):
-                    v.eval()
-                    values[k] = v.values["o"]
-            self.values = values
 
 class Dff(Chip):
     def __init__(self, a):
@@ -141,12 +101,12 @@ def map2(f,A,B):
 
 def gateArray1(name, gate, A):
     chip = Chip(f"{name}{len(A)}", {"A":A})
-    chip.outputs={"O":map1(gate, A)}
+    chip.outputs={"o":map1(gate, A)}
     return chip
 
 def gateArray2(name, gate, A, B):
     chip = Chip(f"{name}{len(A)}", {"A":A, "B":B})
-    chip.outputs={"O":map2(gate, A, B)}
+    chip.outputs={"o":map2(gate, A, B)}
     return chip
 
 def WIRE(A):
@@ -164,8 +124,12 @@ def ONE(n):
     A = [1]*n
     return WIRE(A)
 
+def VALUE(A):
+    return map1(lambda a:Value(a), A)
+
 def NOT(A):
     return gateArray1("not", Not, A)
+
 
 def AND(A,B):
     return gateArray2("and", And, A, B)
@@ -212,14 +176,15 @@ def FullAdder(a,b,c):
 def ADD(A,B,cin):
     assert len(A)==len(B)
     chip = Chip(f"ADD{len(A)}", {"A":A, "B":B, "cin":cin})
-    S = [0]*len(A)
-    C = [0]*(len(A)+1)
+    S = [None]*len(A)
+    C = [None]*(len(A)+1)
     C[0] = cin
     for i in range(0, len(A)):
-        o = FullAdder(A[i], B[i], C[i]).outputs
+        fa = FullAdder(A[i], B[i], C[i])
+        o = fa.outputs
         S[i] = o['sum']
         C[i+1] = o['carry']
-    chip.outputs = {"O":S, "cout":C[len(A)]}
+    chip.outputs = {"o":S, "cout":C[len(A)]}
     return chip
 
 def Bit(a, load):
@@ -234,7 +199,7 @@ Reg = Bit
 
 def REG(A, load):
     chip = Chip(f"reg{len(A)}", {"A":A, "load":load})
-    chip.outputs={"O":map1(lambda x:Reg(x, chip.inputs["load"]), A)}
+    chip.outputs={"o":map1(lambda x:Reg(x, chip.inputs["load"]), A)}
     return chip
 
 def INC(A):
