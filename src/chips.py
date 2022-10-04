@@ -6,6 +6,8 @@ class Value(Node):
     def __init__(self, value):
         super(Value, self).__init__("value", {})
         self.values = {"o":value}
+    def assign(self, v):
+        self.values['o'] = v
     def exp(self):
         return str(self.values['o'])
     def __str__(self):
@@ -30,16 +32,55 @@ class Chip(Node):
     
     def __str__(self):
         return self.str(self.show)
+    def eval(self):
+        clear(self)
+        return eval(self)
 
-class Dff(Chip):
-    def __init__(self, a):
-        super(Dff, self).__init__("dff", {"a":a})
-        self.q = 'X'
-        self.outputs = {"o":self.q}
-    def clock():
-        q0 = self.q
-        self.q = self.inputs["a"].o()
-        return q0
+def clear(chip):
+    if isinstance(chip, list): # list of chips
+        for x in chip: clear(x)
+        return
+    assert isinstance(chip, Node)
+    if chip.values is None: return
+    for k, v in chip.outputs.items():
+        if v != chip: clear(v)
+    chip.values = None
+
+def eval(chip):
+    if isinstance(chip, list): return {'o':map1(lambda x:eval(x)['o'], chip)}
+    # print('chip=', chip, ' tag=', chip.tag)
+    assert isinstance(chip, Node)
+    if chip.values is not None: return chip.values
+    op = chip.tag
+    o = None
+    if op == "not":
+        a = chip.inputs['a']; eval(a); a = a.values['o']
+        o = 0 if a==1 else 1
+        chip.values = {"o":o}
+    elif op in ["and", "or", "xor"]:
+        a = chip.inputs['a']; eval(a); a = a.values['o']
+        b = chip.inputs['b']; eval(b); b = b.values['o']
+        if op == "and":
+            o = 1 if a==1 and b==1 else 0
+        elif op == "or":
+            o = 1 if a==1 or b==1 else 0
+        elif op == "xor":
+            o = 1 if a!=b else 0
+        # print(f'{chip.tag}({a},{b})={o}')
+        chip.values = {"o":o}
+    elif op == 'dff':
+        chip.values = {'o':chip.q0}
+    else:
+        # print('chip.tag=', chip.tag)
+        values = {}
+        for k, v in chip.outputs.items():
+            if v == chip: continue
+            ev = eval(v)
+            # print("v.tag=", v.tag, "ev=", ev)
+            values[k] = ev["o"]
+            # values[k] = eval(v)["o"]
+        chip.values = values
+    return chip.values
 
 # 只有一個輸出的基本 Chip 稱為 Gate，像是 Not, And, Or, Xor, Mux
 # 從源頭追蹤回去 inputs 可以取得所有輸入元件
@@ -49,8 +90,10 @@ def Gate(tag, inputs):
     chip.outputs = {'o':chip}
     return chip
 
+'''
 def Wire(a):
     return Gate("wire", {"a", a})
+'''
 
 def Not(a):
     return Gate("not", {"a":a})
@@ -109,27 +152,28 @@ def gateArray2(name, gate, A, B):
     chip.outputs={"o":map2(gate, A, B)}
     return chip
 
+'''
 def WIRE(A):
     return gateArray1("wire", Wire, A)
 
 def BUS(n):
     A = [0]*n
     return WIRE(A)
-
-def ZERO(n):
-    A = [0]*n
-    return WIRE(A)
-
-def ONE(n):
-    A = [1]*n
-    return WIRE(A)
+'''
 
 def VALUE(A):
     return map1(lambda a:Value(a), A)
 
+def ZERO(n):
+    A = [0]*n
+    return VALUE(A)
+
+def ONE(n):
+    A = [1]*n
+    return VALUE(A)
+
 def NOT(A):
     return gateArray1("not", Not, A)
-
 
 def AND(A,B):
     return gateArray2("and", And, A, B)
@@ -141,10 +185,12 @@ def XOR(A,B):
     return gateArray2("xor", Xor, A, B)
 
 def MUX(sel,A,B):
-    return gateArray2("mux", lambda a,b:Mux(sel,a,b).o(), A, B)
+    # return gateArray2("mux", lambda a,b:Mux(sel,a,b).o(), A, B)
+    return gateArray2("mux", lambda a,b:Mux(sel,a,b), A, B)
 
 def IF(cond,A,B):
-    return gateArray2("if", lambda a,b:If(cond,a,b).o(), A, B)
+    # return gateArray2("if", lambda a,b:If(cond,a,b).o(), A, B)
+    return gateArray2("if", lambda a,b:If(cond,a,b), A, B)
 
 def Or8Way(A):
     assert len(A)==8
@@ -187,24 +233,9 @@ def ADD(A,B,cin):
     chip.outputs = {"o":S, "cout":C[len(A)]}
     return chip
 
-def Bit(a, load):
-    chip = Chip(f"Bit", {"a":a, "load":load})
-    mux = Mux("_", a, load)
-    reg = Dff(mux.o())
-    mux.inputs["a"] = reg.o()
-    chip.outputs={"o":reg.o()}
-    return chip
-
-Reg = Bit
-
-def REG(A, load):
-    chip = Chip(f"reg{len(A)}", {"A":A, "load":load})
-    chip.outputs={"o":map1(lambda x:Reg(x, chip.inputs["load"]), A)}
-    return chip
-
 def INC(A):
-    B = [0]*len(A)
-    return ADD(A, B, 1)
+    B = VALUE([0]*len(A))
+    return ADD(A, B, Value(1))
 
 def dump(name, chips):
     print(f"============{name}============")

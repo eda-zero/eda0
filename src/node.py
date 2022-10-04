@@ -26,7 +26,7 @@ class Node:
 
 def exp(node, nodeMap):
     if not isinstance(node, Node): return str(node)
-    if not nodeMap.get(node.id) is None: return f"#G{node.id}"
+    if not nodeMap.get(node.id) is None: return f"{node.tag}:#{node.id}"
     nodeMap[node.id] = node
     plist = []
     for n in node.inputs.values():
@@ -34,7 +34,11 @@ def exp(node, nodeMap):
             plist.append(exp(n, nodeMap))
         else:
             plist.append(str(n))
-    if len(plist)==0: # leaf node
+    if node.tag == 'value':
+        return node.exp()
+    elif node.tag == 'dff':
+        return node.exp()
+    elif len(plist)==0: # leaf node
         return f"{node.tag}"
     else: # node with inputs
         return f"{node.tag}({','.join(plist)})"
